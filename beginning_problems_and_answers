@@ -54,8 +54,18 @@ In the Suppliers table, show the SupplierID, ContactName, and ContactTitle for t
 7. Products with “queso” in ProductName
 In the products table, we’d like to see the ProductID and ProductName for those products where the ProductName includes the string “queso”.
 
+  Answer
+    SELECT ProductID, ProductName
+    FROM Products
+    WHERE ProductName like '%queso%' ;
+
 8. Orders shipping to France or Belgium
 Looking at the Orders table, there’s a field called ShipCountry. Write a query that shows the OrderID, CustomerID, and ShipCountry for the orders where the ShipCountry is either France or Belgium.
+
+  Answer
+    SELECT OrderID, CustomerID, ShipCountry
+    FROM Orders
+    WHERE ShipCountry = 'France' or ShipCountry = 'Belgium' ;
 
 9. Orders shipping to any country in Latin America
 Now, instead of just wanting to return all the orders from France of Belgium, we want to show all the orders from any Latin American country. But we don’t have a list of Latin American countries in a
@@ -64,37 +74,124 @@ It doesn’t make sense to use multiple Or statements
 anymore, it would get too convoluted. Use the In
 statement.
 
+  Answer
+    SELECT OrderID, CustomerID, ShipCountry
+    FROM Orders
+    WHERE ShipCountry in ('Brazil', 'Mexico', 'Argentina', 'Venezuela') ;
+
 10. Employees, in order of age
 For all the employees in the Employees table, show the FirstName, LastName, Title, and BirthDate. Order the results by BirthDate, so we have the oldest employees first.
+
+  Answer
+    SELECT FirstName, LastName, Title, BirthDate
+    FROM Employees
+    ORDER BY BirthDate ;
 
 11. Showing only the Date with a DateTime field
 In the output of the query above, showing the Employees in order of BirthDate, we see the time of the BirthDate field, which we don’t want. Show only the date portion of the BirthDate field.
 
+  Answer
+    SELECT FirstName, LastName, Title, convert(date, BirthDate) as BirthDate
+    FROM Employees
+    ORDER BY BirthDate ;
+
+        Other Answers
+          cast(BirthDate AS Date)
+
 12. Employees full name
 Show the FirstName and LastName columns from the Employees table, and then create a new column called FullName, showing FirstName and LastName joined together in one column, with a space inbetween.
+
+  Answer
+    SELECT FirstName, LastName, FirstName + ' '+ LastName as FullName
+    FROM Employees ;
 
 13. OrderDetails amount per line item
 In the OrderDetails table, we have the fields UnitPrice and Quantity. Create a new field, TotalPrice, that multiplies these two together. We’ll ignore the Discount field for now.
 In addition, show the OrderID, ProductID, UnitPrice, and Quantity. Order by OrderID and ProductID.
 
+  Answer
+    SELECT OrderID, ProductID, UnitPrice, Quantity, UnitPrice*Quantity as TotalPrice
+    FROM [Order Details]
+    ORDER BY OrderID, ProductID;
+
 14. How many customers?
 How many customers do we have in the Customers table? Show one value only, and don’t rely on getting the recordcount at the end of a resultset.
+
+  Answer
+    SELECT count(CustomerID)
+    FROM Customers;
+
+    Book Answer:
+      SELECT TotalCustomers = count(*)
+      FROM Customers;
+      
+  Both gets the same answer but using * counts all the rows including the null values.    
 
 15. When was the first order?
 Show the date of the first order ever made in the Orders table.
 
+  Answer : There are a few ways to answer this question. Limit do not work with sql server. The book answer uses min I did not use min.
+   SELECT OrderDate
+   FROM Orders
+   ORDER BY OrderDate
+   OFFSET 0 ROW FETCH FIRST 1 ROWS ONLY ;
+   
+   SELECT TOP 1 OrderDate
+   FROM Orders ;
+   
+    Book Answer
+      SELECT min(OrderDate)
+      FROM Orders ;
+
 16. Countries where there are customers
 Show a list of countries where the Northwind company has customers.
+
+  Answer : I use. distinct. The book used the group by clause because you can't use distinct with aggregate functions.
+    SELECT distinct(Country)
+    FROM Customers ;
+
+    Book Answer
+      SELECT Country
+      FROM Customers 
+      GROUP By Country;
 
 17. Contact titles for customers
 Show a list of all the different values in the Customers table for ContactTitles. Also include a count for each ContactTitle.
 This is similar in concept to the previous question “Countries where there are customers”, except we now want a count for each ContactTitle.
+
+  Answer : The problem did not say to order by, I would use ORDER BY CountactTitle_Count desc. The book answer uses * and = to create an alias
+    SELECT ContactTitle, count(ContactTitle) as ContactTitle_Count
+    FROM Customers
+    GROUP BY ContactTitle ;
+
+    Book Answer  
+      SELECT ContactTitle, ContactTitle_Count = count(*)
+      FROM Customers
+      GROUP BY ContactTitle 
+      Order By count(*) desc;
 
 18. Products with associated supplier names
 We’d like to show, for each product, the associated Supplier. Show the ProductID, ProductName, and the CompanyName of the Supplier. Sort by ProductID.
 This question will introduce what may be a new concept, the Join clause in SQL. The Join clause is used to join two or more relational database tables
 together in a logical way. Here’s a data model of the relationship between Products and Suppliers.
 
+  Answer
+    SELECT ProductID, ProductName, CompanyName
+    FROM Suppliers
+    JOIN Products
+    ON Suppliers.SupplierID = Products.SupplierID
+    ORDER BY ProductID ;
+    
+    Book Answer: The book answer uses the supplier table for the from and join with the products table.
+
 19. Orders and the Shipper that was used
 We’d like to show a list of the Orders that were made, including the Shipper that was used. Show the OrderID, OrderDate (date only), and CompanyName
 of the Shipper, and sort by OrderID. In order to not show all the orders (there’s more than 800), show only those rows with an OrderID of less than 10300.
+
+  Answer: ShipVia on the orders table is the same as the shipperID on the shippers table.
+    SELECT OrderID, convert( date, OrderDate) as OrderDate, CompanyName
+    FROM Orders
+    JOIN Shippers
+    ON Orders.ShipVia = Shippers.ShipperID
+    WHERE OrderID < 10300
+    ORDER BY OrderID ;
